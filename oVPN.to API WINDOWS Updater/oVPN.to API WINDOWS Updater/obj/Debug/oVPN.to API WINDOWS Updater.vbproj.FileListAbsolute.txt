@@ -7,3 +7,12 @@ C:\Users\Twinker\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Up
 C:\Users\Twinker\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\obj\Debug\oVPN.to API WINDOWS Updater.exe
 C:\Users\Twinker\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\obj\Debug\oVPN.to API WINDOWS Updater.xml
 C:\Users\Twinker\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\obj\Debug\oVPN.to API WINDOWS Updater.pdb
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\bin\Debug\oVPN.to API WINDOWS Updater.exe.config
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\obj\Debug\oVPN.to API WINDOWS Updater.exe
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\obj\Debug\oVPN.to API WINDOWS Updater.xml
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\obj\Debug\oVPN.to API WINDOWS Updater.pdb
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\bin\Debug\oVPN.to API WINDOWS Updater.exe
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\bin\Debug\oVPN.to API WINDOWS Updater.pdb
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\bin\Debug\oVPN.to API WINDOWS Updater.xml
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\obj\Debug\oVPN.to_API_WINDOWS_Updater.Resources.resources
+C:\Users\Administrator\Documents\GitHub\oVPN.to-Windows-Updater\oVPN.to API WINDOWS Updater\oVPN.to API WINDOWS Updater\obj\Debug\oVPN.to API WINDOWS Updater.vbproj.GenerateResource.Cache
