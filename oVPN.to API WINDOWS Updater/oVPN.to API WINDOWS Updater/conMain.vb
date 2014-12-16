@@ -325,7 +325,7 @@ Module conMain
         sOutput = Left$(sOutput, 13)
 
         sOutput = Split(sOutput, " ")(1).Replace(".", "")
-        If UBound(Split(getOVPNVersion(), ":")) > 1 Then
+        If UBound(Split(getOVPNVersion(), ":")) > 0 Then
             If Not Split(getOVPNVersion(), ":")(1) = sOutput Then
                 Console.ForegroundColor = ConsoleColor.Magenta
                 Console.WriteLine("Warning! Update your openVPN " & Split(getOVPNVersion(), ":")(1) & " Client manually")
