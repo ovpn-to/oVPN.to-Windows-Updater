@@ -26,6 +26,11 @@ Module conMain
         'AppTitle
         Console.Title = appTitle
         Console.ForegroundColor = ConsoleColor.White
+        If Not IO.File.Exists(DIR & "lastovpntoupdate.txt") Then
+            IO.File.Create(DIR & "lastovpntoupdate.txt").Close()
+            IO.File.WriteAllText(DIR & "lastovpntoupdate.txt", 0)
+        End If
+
         readINI()
         updateClient()
         ' start update checks and go!
