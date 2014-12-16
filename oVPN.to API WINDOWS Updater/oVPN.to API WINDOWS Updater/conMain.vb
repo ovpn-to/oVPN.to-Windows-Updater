@@ -104,7 +104,7 @@ Module conMain
         If UBound(Split(getLastUpdater, ":")) > 0 Then
             If Not Split(getLastUpdater(), ":")(1) = appVersion Then
                 Console.ForegroundColor = ConsoleColor.Magenta
-                Console.WriteLine("Please update your openVPN-Client!", MsgBoxStyle.Critical, "Newer openVPN Version available!")
+                Console.WriteLine("Please update your openVPN-Client!")
                 Console.Title = appTitle & " / openVPN-Client not up 2 date"
                 Console.ForegroundColor = ConsoleColor.White
             End If
