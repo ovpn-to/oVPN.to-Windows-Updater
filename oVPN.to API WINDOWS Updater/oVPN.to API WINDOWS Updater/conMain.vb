@@ -1,8 +1,18 @@
-﻿Imports System.IO, System.Net, System.Text
+﻿' oVPN.to Updater by twink0r
+' thanks to oVPN.to - MrNice
+' appVersion 0002
+' dotNET Framework 4
+
+
+' Copyright (c) <2014> <twink0r & MrNice>
+' Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+' The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Imports System.IO, System.Net, System.Text
 Module conMain
     Const URL As String = "https://vcp.ovpn.to/xxxapi.php"
     Const appTitle As String = "oVPN.to Win Updater"
-    Const appVersion As String = "0001"
+    Const appVersion As String = "0002"
     Dim otp As String
     Dim DIR As String = System.AppDomain.CurrentDomain.BaseDirectory
     Dim CVERSION As String
@@ -89,7 +99,8 @@ Module conMain
         If UBound(Split(getLastUpdater, ":")) > 0 Then
             If Not Split(getLastUpdater(), ":")(1) = appVersion Then
                 Console.ForegroundColor = ConsoleColor.Magenta
-                MsgBox("Client not up 2 date.", MsgBoxStyle.Critical, "Warning! out 2 date")
+                Console.WriteLine("Client not up 2 date.", MsgBoxStyle.Critical, "Warning! out 2 date")
+                Console.Title = appTitle & " / Client not up 2 date"
                 Console.ForegroundColor = ConsoleColor.White
             End If
         End If
@@ -105,6 +116,7 @@ Module conMain
             Dim UIDSB As StringBuilder
             Dim APISB As StringBuilder
             Dim CTYPSB As StringBuilder
+            Dim bInvalid As Boolean
             Dim res As Integer
 
 
@@ -112,12 +124,32 @@ Module conMain
             APISB = New StringBuilder(350)
             CTYPSB = New StringBuilder(350)
             res = GetPrivateProfileString("data", "USERID", "", UIDSB, UIDSB.Capacity, DIR & "ovpnapi.ini")
-            UID = UIDSB.ToString
+            If UIDSB.ToString = "" Then
+                Console.WriteLine("please add your UserID to the configfile")
+                bInvalid = True
+            Else
+                UID = UIDSB.ToString.Replace(" ", "")
+            End If
             res = GetPrivateProfileString("data", "APIKEY", "", APISB, APISB.Capacity, DIR & "ovpnapi.ini")
-            apiKey = APISB.ToString
+            If APISB.ToString = "" Then
+                Console.WriteLine("please add your ApiKey to the configfile")
+                bInvalid = True
+            Else
+                apiKey = APISB.ToString
+            End If
             res = GetPrivateProfileString("data", "OCFGTYPE", "", CTYPSB, CTYPSB.Capacity, DIR & "ovpnapi.ini")
-            OCFGTYPE = CTYPSB.ToString
+            If CTYPSB.ToString = "" Then
+                Console.WriteLine("please add your configfile type to the configfile")
+                bInvalid = True
+            Else
+                OCFGTYPE = CTYPSB.ToString
+            End If
 
+            If bInvalid = True Then
+                Console.WriteLine("update your config first.")
+                Threading.Thread.Sleep(3000)
+                End
+            End If
         Else
             Console.WriteLine("configfile doesn't exist")
             Console.Write("create configfile? (Y)es / (N)o : ")
@@ -144,9 +176,10 @@ Module conMain
                 End If
 
                 IO.File.WriteAllText(DIR & "ovpnapi.ini", iniContent)
-                Console.WriteLine("please restart updater")
-                Exit Sub
-           
+                Console.WriteLine("please restart updater.")
+                Threading.Thread.Sleep(5000)
+                End
+
             End If
 
         End If
@@ -254,7 +287,7 @@ Module conMain
             Console.WriteLine("Requesting oVPN ConfigUpdate:")
             Dim client As New System.Net.WebClient
             client.DownloadFile(URL & "?uid=" & UID & "&otp=" & otp & "&action=getconfigs&version=" & CVERSION & "&type=" & OCFGTYPE, DIR & "config.zip")
-            Console.WriteLine("done.")
+            Console.WriteLine("done. configs.zip saved to " & DIR & "config.zip")
         Catch ex As Exception
             Console.WriteLine("Cert request doesn't work at this moment please try again later")
         End Try
@@ -264,7 +297,7 @@ Module conMain
             Console.WriteLine("Requesting oVPN Certificates: ")
             Dim client As New System.Net.WebClient
             client.DownloadFile(URL & "?uid=" & UID & "&otp=" & otp & "&action=getcerts", DIR & "certs.zip")
-            Console.WriteLine("done.")
+            Console.WriteLine("done. certs.zip saved to " & DIR & "certs.zip")
             IO.File.WriteAllText(DIR & "lastovpntoupdate.txt", lastUpdateOnline)
         Catch ex As Exception
             Console.WriteLine("Cert request doesn't work at this moment please try again later")
