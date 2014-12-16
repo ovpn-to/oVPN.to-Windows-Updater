@@ -43,8 +43,8 @@ Module conMain
             If lastUpdateFile < lastUpdateOnline Then
                 Console.Clear()
                 Console.ForegroundColor = ConsoleColor.Magenta
-                Console.WriteLine("Configs out2date")
-                Console.Write("Update now? (Y)es / (N)o :")
+                Console.WriteLine("Update available!")
+                Console.Write("Update Certs and Configs now? (Y)es / (N)o :")
                 Console.ForegroundColor = ConsoleColor.White
                 Dim choice As String
                 choice = Console.ReadLine()
@@ -63,7 +63,7 @@ Module conMain
                 If strForce.ToUpper = "Y" Then
                     startUpdate()
                 Else
-                    Console.WriteLine("all good ! all things up to date")
+                    Console.WriteLine("Enter Y or we do nothing!")
                 End If
             End If
         Else
@@ -104,8 +104,8 @@ Module conMain
         If UBound(Split(getLastUpdater, ":")) > 0 Then
             If Not Split(getLastUpdater(), ":")(1) = appVersion Then
                 Console.ForegroundColor = ConsoleColor.Magenta
-                Console.WriteLine("Client not up 2 date.", MsgBoxStyle.Critical, "Warning! out 2 date")
-                Console.Title = appTitle & " / Client not up 2 date"
+                Console.WriteLine("PLEASE UPDATE YOUR WINDOWS-UPDATER TOOL!!!")
+                Console.Title = appTitle & " / WIN-Updater not up 2 date"
                 Console.ForegroundColor = ConsoleColor.White
             End If
         End If
