@@ -8,11 +8,18 @@
 ' Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 ' The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 ' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+'
+' Changelog : 21.12.14
+' - Add SSL Fingerprint Check
+
 Imports System.IO, System.Net, System.Text
+Imports System.Net.Security
+Imports System.Security.Cryptography.X509Certificates
+
 Module conMain
     Const URL As String = "https://vcp.ovpn.to/xxxapi.php"
     Const appTitle As String = "oVPN.to Win Updater"
-    Const appVersion As String = "0002"
+    Const appVersion As String = "0003"
     Dim otp As String
     Dim DIR As String = System.AppDomain.CurrentDomain.BaseDirectory
     Dim CVERSION As String
@@ -21,8 +28,11 @@ Module conMain
     Dim OCFGTYPE As String
     Dim lastUpdateFile As String
     Dim lastUpdateOnline As String
+    Dim oVPNSSLFP As String = "D4A54FC76F692CA048927F6179303B95ACD5DA2F"
 
     Sub Main()
+        ServicePointManager.ServerCertificateValidationCallback = New RemoteCertificateValidationCallback(AddressOf AcceptAllCertifications)
+        checkSSL()
         'AppTitle
         Console.Title = appTitle
         Console.ForegroundColor = ConsoleColor.White
@@ -44,7 +54,7 @@ Module conMain
                 Console.Clear()
                 Console.ForegroundColor = ConsoleColor.Magenta
                 Console.WriteLine("Update available!")
-                Console.Write("Update Certs and Configs now? (Y)es / (N)o :")
+                Console.Write("Update Certs and Configs now? (Y)es / (N)o : ")
                 Console.ForegroundColor = ConsoleColor.White
                 Dim choice As String
                 choice = Console.ReadLine()
@@ -77,6 +87,24 @@ Module conMain
         End While
 
     End Sub
+    Function checkSSL()
+        Dim wc As New Net.WebClient
+        Return wc.DownloadString(URL)
+    End Function
+    Public Function AcceptAllCertifications(ByVal sender As Object, ByVal certification As System.Security.Cryptography.X509Certificates.X509Certificate, ByVal chain As System.Security.Cryptography.X509Certificates.X509Chain, ByVal sslPolicyErrors As System.Net.Security.SslPolicyErrors) As Boolean
+        Dim x509 As New X509Certificate2
+        Dim rawData() As Byte = certification.GetRawCertData
+        x509.Import(rawData)
+
+        If x509.Thumbprint = oVPNSSLFP Then
+            Return True
+        Else
+            Console.WriteLine("vcp.ovpn.to SSL Certificate ERROR! EXIT")
+            Threading.Thread.Sleep(5000)
+            End
+        End If
+
+    End Function
     Sub startUpdate()
         getOPENVPNVersion()
         Dim Request As String
