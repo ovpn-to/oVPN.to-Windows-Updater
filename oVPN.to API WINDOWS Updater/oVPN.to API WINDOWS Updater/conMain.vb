@@ -10,32 +10,41 @@
 ' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES' OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '
 ' Changelog : 21.12.14
-' - Add SSL Fingerprint Check
+' - Add 
+'       SSL Fingerprint Check
+' Changelog : 21.12.14
+' - Add 
+'       Config File changed - exe_autoupdate
+'       Autoupdate function - hashcheck and autostart 
 
 Imports System.IO, System.Net, System.Text
 Imports System.Net.Security
 Imports System.Security.Cryptography.X509Certificates
+Imports System.Security.Cryptography
 
 Module conMain
     Const URL As String = "https://vcp.ovpn.to/xxxapi.php"
     Const appTitle As String = "oVPN.to Win Updater"
-    Const appVersion As String = "0003"
+    Const appVersion As String = "0004"
+    Const oVPNSSLFP As String = "D4A54FC76F692CA048927F6179303B95ACD5DA2F"
     Dim otp As String
     Dim DIR As String = System.AppDomain.CurrentDomain.BaseDirectory
+    Dim lastUpdaterV As String
     Dim CVERSION As String
     Dim UID As String
     Dim apiKey As String
     Dim OCFGTYPE As String
     Dim lastUpdateFile As String
     Dim lastUpdateOnline As String
-    Dim oVPNSSLFP As String = "D4A54FC76F692CA048927F6179303B95ACD5DA2F"
+    Dim bAutoUpdate As Boolean
 
     Sub Main()
+        Console.Title = appTitle
+        Console.ForegroundColor = ConsoleColor.White
         ServicePointManager.ServerCertificateValidationCallback = New RemoteCertificateValidationCallback(AddressOf AcceptAllCertifications)
         checkSSL()
         'AppTitle
-        Console.Title = appTitle
-        Console.ForegroundColor = ConsoleColor.White
+
         If Not IO.File.Exists(DIR & "lastovpntoupdate.txt") Then
             IO.File.Create(DIR & "lastovpntoupdate.txt").Close()
             IO.File.WriteAllText(DIR & "lastovpntoupdate.txt", 0)
@@ -56,13 +65,14 @@ Module conMain
                 Console.WriteLine("Update available!")
                 Console.Write("Update Certs and Configs now? (Y)es / (N)o : ")
                 Console.ForegroundColor = ConsoleColor.White
+
                 Dim choice As String
                 choice = Console.ReadLine()
                 If choice.ToUpper = "Y" Then
                     startUpdate()
                 End If
 
-            Else
+            ElseIf lastUpdateFile = lastUpdateOnline Then
                 Console.Clear()
                 Console.ForegroundColor = ConsoleColor.Green
                 Console.WriteLine("Configs up2date")
@@ -75,6 +85,11 @@ Module conMain
                 Else
                     Console.WriteLine("Enter Y or we do nothing!")
                 End If
+            Else
+                Console.Clear()
+                Console.WriteLine(lastupdate())
+                Console.WriteLine(UID)
+
             End If
         Else
             IO.File.Create(DIR & "lastovpntoupdate.txt").Close()
@@ -87,6 +102,39 @@ Module conMain
         End While
 
     End Sub
+    Sub checkHash()
+        Dim onlineHash As String
+        Dim localHash As String
+        localHash = GetSHA512(System.AppDomain.CurrentDomain.FriendlyName)
+        onlineHash = getHash()
+        If Not onlineHash = localHash Then
+            Console.WriteLine("ERROR! INVALID FILE-HASH! EXIT")
+            Threading.Thread.Sleep(5000)
+            End
+        End If
+    End Sub
+    Function GetSHA512(ByVal filePath As String)
+        Dim sha512 As SHA512CryptoServiceProvider = New SHA512CryptoServiceProvider
+        Dim f As FileStream = New FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 8192)
+
+        f = New FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 8192)
+        sha512.ComputeHash(f)
+        f.Close()
+
+        Dim hash As Byte() = sha512.Hash
+        Dim buff As StringBuilder = New StringBuilder
+        Dim hashByte As Byte
+
+        For Each hashByte In hash
+            buff.Append(String.Format("{0:X2}", hashByte))
+        Next
+
+        Dim sha512string As String
+        sha512string = buff.ToString()
+
+        Return sha512string
+
+    End Function
     Function checkSSL()
         Dim wc As New Net.WebClient
         Return wc.DownloadString(URL)
@@ -129,14 +177,19 @@ Module conMain
 
     End Sub
     Sub updateClient()
-        If UBound(Split(getLastUpdater, ":")) > 0 Then
-            If Not Split(getLastUpdater(), ":")(1) = appVersion Then
+        lastUpdaterV = getLastUpdater()
+        If Not lastUpdaterV = appVersion Then
+            If bAutoUpdate = False Then
                 Console.ForegroundColor = ConsoleColor.Magenta
                 Console.WriteLine("PLEASE UPDATE YOUR WINDOWS-UPDATER TOOL!!!")
                 Console.Title = appTitle & " / WIN-Updater not up 2 date"
                 Console.ForegroundColor = ConsoleColor.White
+                Threading.Thread.Sleep(10000)
+            ElseIf bAutoUpdate = True Then
+                getLastUpdaterBin()
             End If
         End If
+
     End Sub
     Private Declare Auto Function GetPrivateProfileString Lib "kernel32" (ByVal lpAppName As String, _
                 ByVal lpKeyName As String, _
@@ -149,6 +202,7 @@ Module conMain
             Dim UIDSB As StringBuilder
             Dim APISB As StringBuilder
             Dim CTYPSB As StringBuilder
+            Dim UPSB As StringBuilder
             Dim bInvalid As Boolean
             Dim res As Integer
 
@@ -156,12 +210,19 @@ Module conMain
             UIDSB = New StringBuilder(350)
             APISB = New StringBuilder(350)
             CTYPSB = New StringBuilder(350)
+            UPSB = New StringBuilder(350)
             res = GetPrivateProfileString("data", "USERID", "", UIDSB, UIDSB.Capacity, DIR & "ovpnapi.ini")
             If UIDSB.ToString = "" Then
                 Console.WriteLine("please add your UserID to the configfile")
                 bInvalid = True
             Else
-                UID = UIDSB.ToString.Replace(" ", "")
+                If IsNumeric(UIDSB.ToString.Replace(" ", "")) Then
+                    UID = UIDSB.ToString.Replace(" ", "")
+                Else
+                    Console.WriteLine("UserID only Numeric")
+                    Threading.Thread.Sleep(2500)
+                    End
+                End If
             End If
             res = GetPrivateProfileString("data", "APIKEY", "", APISB, APISB.Capacity, DIR & "ovpnapi.ini")
             If APISB.ToString = "" Then
@@ -178,6 +239,14 @@ Module conMain
                 OCFGTYPE = CTYPSB.ToString
             End If
 
+            res = GetPrivateProfileString("data", "exe_autoupdate", "", UPSB, UPSB.Capacity, DIR & "ovpnapi.ini")
+            If UPSB.ToString = "" Then
+                Console.WriteLine("please add your autoupdate setting to the configfile")
+                bInvalid = True
+            Else
+                bAutoUpdate = UPSB.ToString
+            End If
+
             If bInvalid = True Then
                 Console.WriteLine("update your config first.")
                 Threading.Thread.Sleep(3000)
@@ -191,6 +260,7 @@ Module conMain
             Dim tmpUID As String
             Dim tmpAPI As String
             Dim tmpOTYPE As String
+            Dim tmpAuto As String
             status = Console.ReadLine()
             If status.ToUpper = "Y" Then
                 IO.File.Create(DIR & "ovpnapi.ini").Close()
@@ -200,12 +270,20 @@ Module conMain
                 tmpAPI = Console.ReadLine()
                 Console.Write("oVPN CFG Type ? win / lin / and / mac : ")
                 tmpOTYPE = Console.ReadLine()
+                Console.Write("exe autoupdate? (Y)es / (N)o : ")
+                tmpAuto = Console.ReadLine()
+                If tmpAuto.ToUpper = "Y" Then
+                    tmpAuto = True
+                Else
+                    tmpAuto = False
+                End If
+
                 If tmpOTYPE = "win" Or tmpOTYPE = "lin" Or tmpOTYPE = "and" Or tmpOTYPE = "mac" Then
-                    iniContent = "[data]" & vbNewLine & "USERID=" & tmpUID & vbNewLine & "APIKEY=" & tmpAPI & vbNewLine & "OCFGTYPE=" & tmpOTYPE
+                    iniContent = "[data]" & vbNewLine & "USERID=" & tmpUID & vbNewLine & "APIKEY=" & tmpAPI & vbNewLine & "OCFGTYPE=" & tmpOTYPE & vbNewLine & "exe_autoupdate=" & tmpAuto.ToLower
                 Else
                     Console.WriteLine("only win , lin , and or mac")
                     tmpOTYPE = "win"
-                    iniContent = "[data]" & vbNewLine & "USERID=" & tmpUID & vbNewLine & "APIKEY=" & tmpAPI & vbNewLine & "OCFGTYPE=" & tmpOTYPE
+                    iniContent = "[data]" & vbNewLine & "USERID=" & tmpUID & vbNewLine & "APIKEY=" & tmpAPI & vbNewLine & "OCFGTYPE=" & tmpOTYPE & vbNewLine & "exe_autoupdate=" & tmpAuto.ToLower
                 End If
 
                 IO.File.WriteAllText(DIR & "ovpnapi.ini", iniContent)
@@ -243,26 +321,24 @@ Module conMain
             Return "Cert request doesn't work at this moment please try again later"
         End Try
     End Function
+    Function getHash()
+        Try
+            Dim wc As New Net.WebClient
+            Dim strResponse As String
+            strResponse = wc.DownloadString(URL & "?action=getlatestwinupdaterhash")
+            If Len(strResponse) = 128 Then
+                Return strResponse
+            Else
+                Return "No SHA512 hash found!"
+            End If
+        Catch ex As Exception
+            Return "hash request doesn't work at this moment please try again later"
+        End Try
+    End Function
     Function getLastUpdater()
         Try
-            Dim Request As HttpWebRequest = CType(WebRequest.Create(URL), HttpWebRequest)
-            Request.Method = "POST"
-            Request.ContentType = "application/x-www-form-urlencoded"
-            Request.UserAgent = "oVPN WIN Update"
-            Dim Post As String = "uid=" & UID & "&apikey=" & apiKey & "&action=getlatestwinupdaterversion"
-            Dim byteArray() As Byte = Encoding.UTF8.GetBytes(Post)
-            Request.ContentLength = byteArray.Length
-            Dim DataStream As Stream = Request.GetRequestStream()
-            DataStream.Write(byteArray, 0, byteArray.Length)
-            DataStream.Close()
-            Dim Response As HttpWebResponse = Request.GetResponse()
-            DataStream = Response.GetResponseStream()
-            Dim reader As New StreamReader(DataStream)
-            Dim ServerResponse As String = reader.ReadToEnd()
-            reader.Close()
-            DataStream.Close()
-            Response.Close()
-            Return ServerResponse
+            Dim wc As New Net.WebClient
+            Return wc.DownloadString("https://vcp.ovpn.to/xxxapi.php?action=getlatestwinupdaterversion")
         Catch ex As Exception
             Return "Cant get last Win Updater Version. try again later"
         End Try
@@ -371,5 +447,34 @@ Module conMain
             CVERSION = "23x"
         End If
 
+    End Sub
+    Sub getLastUpdaterBin()
+        Dim fileHash As String = ""
+        Dim wc As New Net.WebClient
+        Try
+            Console.WriteLine("downloading update...")
+
+            wc.DownloadFile("https://vcp.ovpn.to/files/winupdater/ovpnapi.exe", DIR & "ovpnapi" + lastUpdaterV + ".exe")
+            Console.WriteLine("update finshed!")
+            fileHash = GetSHA512(DIR & "ovpnapi" + lastUpdaterV + ".exe")
+
+            If fileHash.ToLower = getHash().ToString.ToLower Then
+                Console.ForegroundColor = ConsoleColor.Green
+                Console.WriteLine("Update ok ! hash valid")
+                Console.ForegroundColor = ConsoleColor.White
+                Threading.Thread.Sleep(1000)
+                If IO.File.Exists(DIR & "ovpnapi" + lastUpdaterV + ".exe") Then
+                    Process.Start(DIR & "ovpnapi" + lastUpdaterV + ".exe")
+                End If
+                End
+            Else
+                Console.ForegroundColor = ConsoleColor.Magenta
+                Console.WriteLine("Update not valid")
+                Console.ForegroundColor = ConsoleColor.White
+            End If
+            Threading.Thread.Sleep(10000)
+        Catch ex As Exception
+            MsgBox("can not download new updater")
+        End Try
     End Sub
 End Module
